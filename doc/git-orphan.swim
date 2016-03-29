@@ -1,0 +1,25 @@
+git-orphan
+==========
+
+Remove parents from a commit
+
+= Synopsis
+
+  $ git orphan <commit>
+  $ orphan=$(git orphan <commit> | cut -f1)
+  $ head=$(git orphan <commit> | cut -f2)
+
+= Description
+
+  The `orphan` subcommand for Git will remove parents from a commit. On success
+  it will write a line to stdout containing the new root commit and the new
+  head commit separated by a tab.
+
+  This command needs to be run on a repo that is in a clean state.
+
+= Installation
+
+  git clone git@ithub.com:ingydotnet/git-orphan
+
+  # Add to shell startup file:
+  source /path/to/git-orphan/.rc

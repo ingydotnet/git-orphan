@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -e
+
+error() {
+  echo "Error: $@" >&2
+  exit 1
+}
+
+main() {
+  init
+
+  local head="$(git rev-parse HEAD)"
+  [[ -n $head ]] || error "Can't determine HEAD commit"
+  local orphan="${1:-HEAD}"
+  local commit="$(git rev-parse "$orphan")"
+  [[ -n $commit ]] || error "Can't rev-parse '$orphan'"
+
+  git filter-branch --force --parent-filter \
+    "if test \$GIT_COMMIT = $commit;
+      then echo ''; else read line; echo \$line; fi" \
+        -- "$commit^..HEAD" &>/dev/null ||
+    error "filter-branch failed"
+  local new_head="$(git rev-parse HEAD)"
+  local new_orphan="$(git rev-list --parents "$new_head" | egrep -v ' ' | head -n 1)"
+  git reset --hard $head
+  printf "%s\t%s\n" "$new_orphan" "$new_head"
+}
+
+init() {
+  git update-index -q --ignore-submodules --refresh
+  git diff-files --quiet --ignore-submodules ||
+    error "Unstaged changes."
+  git diff-index --quiet --ignore-submodules HEAD ||
+    error "Working tree has changes."
+  git diff-index --quiet --cached --ignore-submodules HEAD ||
+    error "Index has changes."
+}
+
+[[ $0 != "$BASH_SOURCE" ]] || main "$@"
