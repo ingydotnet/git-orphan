@@ -23,7 +23,7 @@ main() {
     error "filter-branch failed"
   local new_head="$(git rev-parse HEAD)"
   local new_orphan="$(git rev-list --parents "$new_head" | egrep -v ' ' | head -n 1)"
-  git reset --hard $head
+  git reset --hard $head &>/dev/null
   printf "%s\t%s\n" "$new_orphan" "$new_head"
 }
 
